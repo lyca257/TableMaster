@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TableMaster - 智能表格管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .app-container {
+            padding: 20px;
+        }
+        .toolbar {
+            margin-bottom: 20px;
+        }
+        .table-container {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <div class="toolbar">
+                <el-button-group>
+                    <el-button type="primary" @click="openFile">
+                        <el-icon><folder-opened /></el-icon>打开文件
+                    </el-button>
+                    <el-button type="primary" @click="connectServer">
+                        <el-icon><connection /></el-icon>连接服务器
+                    </el-button>
+                    <el-button type="success" @click="askAI">
+                        <el-icon><magic-stick /></el-icon>AI助手
+                    </el-button>
+                    <el-button type="primary" @click="addNewRow">
+                        <el-icon><plus /></el-icon>新增
+                    </el-button>
+                </el-button-group>
+            </div>
+            
+            <div class="table-container">
+                <el-table
+                    :data="tableData"
+                    style="width: 100%"
+                    @selection-change="handleSelectionChange"
+                    v-loading="loading">
+                    <el-table-column
+                        type="selection"
+                        width="55">
+                    </el-table-column>
+                    <el-table-column
+                        v-for="(col, index) in columns"
+                        :key="index"
+                        :prop="col.prop"
+                        :label="col.label"
+                        :width="col.width">
+                        <template #default="scope">
+                            <el-input
+                                v-if="scope.row.editing"
+                                v-model="scope.row[col.prop]"
+                                @blur="finishEdit(scope.row)"/>
+                            <span v-else>{{ scope.row[col.prop] }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="150">
+                        <template #default="scope">
+                            <el-button-group>
+                                <el-button
+                                    size="small"
+                                    @click="startEdit(scope.row)">
+                                    编辑
+                                </el-button>
+                                <el-button
+                                    size="small"
+                                    type="danger"
+                                    @click="deleteRow(scope.$index)">
+                                    删除
+                                </el-button>
+                            </el-button-group>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue
+
+        const app = createApp({
+            setup() {
+                const loading = ref(false)
+                const tableData = ref([
+                    {
+                        name: '张三',
+                        date: '2024-01-01',
+                        address: '北京市朝阳区'
+                    },
+                    {
+                        name: '李四',
+                        date: '2024-01-02',
+                        address: '上海市浦东新区'
+                    }
+                ])
+                const columns = ref([
+                    { prop: 'name', label: '名称', width: '180' },
+                    { prop: 'date', label: '日期', width: '180' },
+                    { prop: 'address', label: '地址' }
+                ])
+
+                const handleSelectionChange = (val) => {
+                    console.log('选中的行:', val)
+                }
+
+                const startEdit = (row) => {
+                    row.editing = true
+                }
+
+                const finishEdit = (row) => {
+                    row.editing = false
+                }
+
+                const deleteRow = (index) => {
+                    tableData.value.splice(index, 1)
+                }
+
+                const addNewRow = () => {
+                    tableData.value.push({
+                        name: '',
+                        date: '',
+                        address: '',
+                        editing: true
+                    })
+                }
+
+                const openFile = () => {
+                    // 实现文件打开功能
+                    console.log('打开文件')
+                }
+
+                const connectServer = () => {
+                    // 实现服务器连接功能
+                    console.log('连接服务器')
+                }
+
+                const askAI = () => {
+                    // 实现AI助手功能
+                    console.log('请求AI助手')
+                }
+
+                return {
+                    loading,
+                    tableData,
+                    columns,
+                    handleSelectionChange,
+                    startEdit,
+                    finishEdit,
+                    deleteRow,
+                    openFile,
+                    connectServer,
+                    askAI
+                }
+            }
+        })
+
+        app.use(ElementPlus)
+        app.mount('#app')
+    </script>
+</body>
+</html>
