@@ -64,6 +64,9 @@
                     <el-button type="primary" @click="addNewRow">
                         <el-icon><plus /></el-icon>新增
                     </el-button>
+                    <el-button type="success" @click="saveToExcel">
+                        <el-icon><download /></el-icon>保存
+                    </el-button>
                     <el-button type="info" @click="openDocs">
                         <el-icon><document /></el-icon>文档
                     </el-button>
@@ -191,6 +194,16 @@
                     console.log('选中的行:', val)
                 }
 
+                const saveToExcel = async () => {
+                    try {
+                        const fileHandler = new FileHandler();
+                        await fileHandler.saveToExcel(tableData.value, columns.value);
+                        ElMessage.success('文件保存成功');
+                    } catch (error) {
+                        ElMessage.error(error.message);
+                    }
+                }
+
                 const startEdit = (row) => {
                     row.editing = true
                 }
@@ -260,3 +273,4 @@
     </script>
 </body>
 </html>
+            
