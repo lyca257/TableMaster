@@ -81,29 +81,3 @@ class FileHandler {
     }
 
     async readJqlFile(file) {
-        const reader = new FileReader();
-        return new Promise((resolve, reject) => {
-            reader.onload = (e) => {
-                try {
-                    const content = e.target.result;
-                    // JQL解析逻辑
-                    resolve({
-                        type: 'jql',
-                        content: content.trim()
-                    });
-                } catch (error) {
-                    reject(new Error('JQL文件解析失败：' + error.message));
-                }
-            };
-            reader.onerror = () => reject(new Error('文件读取失败'));
-            reader.readAsText(file);
-        });
-    }
-
-    getFileExtension(filename) {
-        return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 1);
-    }
-}
-
-// 导出FileHandler类
-export default FileHandler;
