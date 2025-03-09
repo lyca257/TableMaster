@@ -126,11 +126,26 @@
     <script>
         const { createApp, ref } = Vue
         
-        createApp({
+        const app = createApp({
             setup() {
-                const tableData = ref([])
-                const columns = ref([])
                 const loading = ref(false)
+                const tableData = ref([
+                    {
+                        name: '张三',
+                        date: '2024-01-01',
+                        address: '北京市朝阳区'
+                    },
+                    {
+                        name: '李四',
+                        date: '2024-01-02',
+                        address: '上海市浦东新区'
+                    }
+                ])
+                const columns = ref([
+                    { prop: 'name', label: '名称', width: '180' },
+                    { prop: 'date', label: '日期', width: '180' },
+                    { prop: 'address', label: '地址' }
+                ])
                 const isDragging = ref(false)
 
                 const showDropZone = () => {
@@ -172,108 +187,76 @@
                     }
                 }
 
+                const handleSelectionChange = (val) => {
+                    console.log('选中的行:', val)
+                }
+
+                const startEdit = (row) => {
+                    row.editing = true
+                }
+
+                const finishEdit = (row) => {
+                    row.editing = false
+                }
+
+                const deleteRow = (index) => {
+                    tableData.value.splice(index, 1)
+                }
+
+                const addNewRow = () => {
+                    tableData.value.push({
+                        name: '',
+                        date: '',
+                        address: '',
+                        editing: true
+                    })
+                }
+
+                const openFile = () => {
+                    // 实现文件打开功能
+                    console.log('打开文件')
+                }
+
+                const connectServer = () => {
+                    // 实现服务器连接功能
+                    console.log('连接服务器')
+                }
+
+                const askAI = () => {
+                    // 实现AI助手功能
+                    console.log('请求AI助手')
+                }
+
+                const openDocs = () => {
+                    window.location.href = './docs/index.html'
+                }
+
                 return {
+                    loading,
                     tableData,
                     columns,
-                    loading,
                     isDragging,
                     showDropZone,
                     hideDropZone,
-                    handleFileDrop
+                    handleFileDrop,
+                    handleSelectionChange,
+                    startEdit,
+                    finishEdit,
+                    deleteRow,
+                    openFile,
+                    connectServer,
+                    askAI,
+                    openDocs,
+                    addNewRow
                 }
             }
-        }).mount('#app')
+        })
+
+        app.use(ElementPlus)
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component)
+        }
+        app.mount('#app')
     </script>
-</body>
-</html>
-
-const app = createApp({
-    setup() {
-        const loading = ref(false)
-        const tableData = ref([
-            {
-                name: '张三',
-                date: '2024-01-01',
-                address: '北京市朝阳区'
-            },
-            {
-                name: '李四',
-                date: '2024-01-02',
-                address: '上海市浦东新区'
-            }
-        ])
-        const columns = ref([
-            { prop: 'name', label: '名称', width: '180' },
-            { prop: 'date', label: '日期', width: '180' },
-            { prop: 'address', label: '地址' }
-        ])
-
-        const handleSelectionChange = (val) => {
-            console.log('选中的行:', val)
-        }
-
-        const startEdit = (row) => {
-            row.editing = true
-        }
-
-        const finishEdit = (row) => {
-            row.editing = false
-        }
-
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        }
-
-        const addNewRow = () => {
-            tableData.value.push({
-                name: '',
-                date: '',
-                address: '',
-                editing: true
-            })
-        }
-
-        const openFile = () => {
-            // 实现文件打开功能
-            console.log('打开文件')
-        }
-
-        const connectServer = () => {
-            // 实现服务器连接功能
-            console.log('连接服务器')
-        }
-
-        const askAI = () => {
-            // 实现AI助手功能
-            console.log('请求AI助手')
-        }
-
-        const openDocs = () => {
-            window.location.href = './docs/index.html'
-        }
-
-        return {
-            loading,
-            tableData,
-            columns,
-            handleSelectionChange,
-            startEdit,
-            finishEdit,
-            deleteRow,
-            openFile,
-            connectServer,
-            askAI,
-            openDocs,
-            addNewRow
-        }
-    }
-})
-
-app.use(ElementPlus)
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-    app.component(key, component)
-}
-app.mount('#app')
-</script>
 </body>
 </html>
