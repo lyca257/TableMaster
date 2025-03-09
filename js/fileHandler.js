@@ -1,83 +1,78 @@
 class FileHandler {
     constructor() {
-        this.supportedFormats = ['.xlsx', '.xls', '.sql', '.jql'];
+        this.maxFileSize = 10 * 1024 * 1024; // 10MB
+        this.supportedTypes = [
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/csv'
+        ];
     }
 
     async readFile(file) {
-        const extension = this.getFileExtension(file.name).toLowerCase();
-        if (!this.supportedFormats.includes(extension)) {
-            throw new Error('不支持的文件格式');
+        if (!this.validateFile(file)) {
+            throw new Error('文件验证失败');
         }
 
-        switch (extension) {
-            case '.xlsx':
-            case '.xls':
-                return await this.readExcelFile(file);
-            case '.sql':
-                return await this.readSqlFile(file);
-            case '.jql':
-                return await this.readJqlFile(file);
-            default:
-                throw new Error('未知的文件格式');
-        }
-    }
-
-    async readExcelFile(file) {
-        const reader = new FileReader();
         return new Promise((resolve, reject) => {
-            reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    // 转换为表格数据格式
-                    const headers = jsonData[0];
-                    const rows = jsonData.slice(1).map(row => {
-                        const obj = {};
-                        headers.forEach((header, index) => {
-                            obj[header] = row[index];
-                        });
-                        return obj;
-                    });
-
-                    resolve({
-                        columns: headers.map(h => ({ prop: h, label: h })),
-                        data: rows
-                    });
-                } catch (error) {
-                    reject(new Error('Excel文件解析失败：' + error.message));
-                }
-            };
-            reader.onerror = () => reject(new Error('文件读取失败'));
-            reader.readAsArrayBuffer(file);
-        });
-    }
-
-    async readSqlFile(file) {
-        const reader = new FileReader();
-        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const content = e.target.result;
-                    // 简单的SQL解析示例
-                    const lines = content.split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line && !line.startsWith('--'));
-                    
-                    resolve({
-                        type: 'sql',
-                        content: lines.join('\n')
-                    });
+                    const data = this.parseFileData(e.target.result, file.type);
+                    resolve(data);
                 } catch (error) {
-                    reject(new Error('SQL文件解析失败：' + error.message));
+                    reject(new Error('文件解析失败：' + error.message));
                 }
             };
             reader.onerror = () => reject(new Error('文件读取失败'));
-            reader.readAsText(file);
+            reader.readAsBinaryString(file);
         });
     }
 
-    async readJqlFile(file) {
+    validateFile(file) {
+        if (file.size > this.maxFileSize) {
+            throw new Error(`文件大小不能超过${this.maxFileSize / 1024 / 1024}MB`);
+        }
+        if (!this.supportedTypes.includes(file.type)) {
+            throw new Error('不支持的文件类型，请上传Excel或CSV文件');
+        }
+        return true;
+    }
+
+    parseFileData(data, fileType) {
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        if (jsonData.length < 2) {
+            throw new Error('文件内容为空或格式不正确');
+        }
+
+        const headers = jsonData[0];
+        const rows = jsonData.slice(1);
+
+        return rows.map(row => {
+            const rowData = {};
+            headers.forEach((header, index) => {
+                rowData[header] = row[index] || '';
+            });
+            return rowData;
+        });
+    }
+
+    async saveToExcel(data, columns) {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `表格数据_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
