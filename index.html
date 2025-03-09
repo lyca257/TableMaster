@@ -8,6 +8,8 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/element-plus"></script>
     <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/FileHandler.js"></script>
     <style>
         body {
             margin: 0;
@@ -165,27 +167,24 @@
                     }
                 }
 
-                const handleFileDrop = (event) => {
+                const handleFileDrop = async (event) => {
                     isDragging.value = false
                     const files = event.dataTransfer.files
                     if (files.length > 0) {
                         const file = files[0]
-                        // 检查文件类型
-                        const validTypes = [
-                            'application/vnd.ms-excel',
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'text/csv'
-                        ]
-                        if (validTypes.includes(file.type)) {
-                            // 处理文件上传
-                            loading.value = true
-                            // TODO: 实现文件处理逻辑
-                            setTimeout(() => {
-                                loading.value = false
-                                ElMessage.success('文件上传成功')
-                            }, 1000)
-                        } else {
-                            ElMessage.error('不支持的文件类型')
+                        loading.value = true
+                        try {
+                            const fileHandler = new FileHandler()
+                            const data = await fileHandler.readFile(file)
+                            tableData.value = data.map(row => ({
+                                ...row,
+                                editing: false
+                            }))
+                            ElMessage.success('文件上传成功')
+                        } catch (error) {
+                            ElMessage.error(error.message)
+                        } finally {
+                            loading.value = false
                         }
                     }
                 }
@@ -273,4 +272,3 @@
     </script>
 </body>
 </html>
-            
