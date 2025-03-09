@@ -42,6 +42,9 @@
                     <el-button type="primary" @click="addNewRow">
                         <el-icon><plus /></el-icon>新增
                     </el-button>
+                    <el-button type="info" @click="openDocs">
+                        <el-icon><document /></el-icon>文档
+                    </el-button>
                 </el-button-group>
             </div>
             
@@ -155,6 +158,10 @@
                     console.log('请求AI助手')
                 }
 
+                const openDocs = () => {
+                    window.location.href = './docs/index.html'
+                }
+
                 return {
                     loading,
                     tableData,
@@ -165,7 +172,9 @@
                     deleteRow,
                     openFile,
                     connectServer,
-                    askAI
+                    askAI,
+                    openDocs,
+                    addNewRow
                 }
             }
         })
